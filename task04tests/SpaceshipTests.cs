@@ -30,7 +30,7 @@ public class SpaceshipTests
         ISpaceship fighter = new Fighter();
 
         fighter.MoveForward();
-        var expectedMessage = fighter.ToString() + " moved forward to 100\r\n";
+        var expectedMessage = fighter.ToString() + " moved forward to 100" + Environment.NewLine;
         Assert.Equal(expectedMessage, sw.ToString());
     }
 
@@ -43,7 +43,7 @@ public class SpaceshipTests
         ISpaceship cruiser = new Cruiser();
 
         cruiser.Fire();
-        var expectedMessage = cruiser.ToString() + " shoot with 100 power\r\n";
+        var expectedMessage = cruiser.ToString() + " shoot with 100 power" + Environment.NewLine;
         Assert.Equal(expectedMessage, sw.ToString());
     }
 
@@ -60,7 +60,7 @@ public class SpaceshipTests
 
         fighter.Rotate(angle);
 
-        var expectedMessage = fighter.ToString() + $" rotated by {angle} degrees\r\n";
+        var expectedMessage = fighter.ToString() + $" rotated by {angle} degrees" + Environment.NewLine;
         Assert.Equal(expectedMessage, sw.ToString());
     }
 }
