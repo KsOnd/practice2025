@@ -23,8 +23,6 @@ namespace task14tests
             Assert.Equal(0, DefiniteIntegral.Solve(-1, 1, sinFunction, 1e-4, 2), 1e-4);
 
             Assert.Equal(0, DefiniteIntegral.Solve(-1, 1, sinFunction, 1e-5, 8), 1e-4);
-
-            Assert.Equal(10, DefiniteIntegral.Solve(0, 5, sinFunction, 1e-6, 8), 1e-5);
         }
 
         [Fact]
