@@ -31,3 +31,26 @@ public class ShortCommand : ICommand
         _action?.Invoke();
     }
 }
+
+public class TestCommand : ILongRunningCommand
+{
+    public int Id { get; }
+    private int _counter = 0;
+    private readonly int _maxRuns;
+
+    // По условию задачи нам нужно выполнить команду 3 раза
+    public bool IsCompleted => _counter >= _maxRuns;
+
+    public TestCommand(int id, int maxRuns = 3)
+    {
+        Id = id;
+        _maxRuns = maxRuns;
+    }
+
+    public void Execute()
+    {
+        if (IsCompleted) return;
+        _counter++;
+        Console.WriteLine($"Поток {Id} вызов {_counter}");
+    }
+}
