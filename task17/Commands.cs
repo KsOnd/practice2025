@@ -1,58 +1,33 @@
 using System;
 using System.Threading;
 
-namespace Task17
+namespace Task17;
+
+public class LongRunningCommand : IMultistepCommand
 {
-    public class HardStopCommand : ICommand
+    private readonly int _totalSteps;
+    private int _currentStep = 0;
+
+    public bool IsCompleted => _currentStep >= _totalSteps;
+
+    public LongRunningCommand(int totalSteps) => _totalSteps = totalSteps;
+
+    public void Execute()
     {
-        private readonly ServerThread _serverThread;
-
-        public HardStopCommand(ServerThread serverThread)
-        {
-            _serverThread = serverThread ?? throw new ArgumentNullException(nameof(serverThread));
-        }
-
-        public void Execute()
-        {
-            if (Thread.CurrentThread != _serverThread.Thread)
-            {
-                throw new InvalidOperationException("Команда HardStop может быть выполнена только внутри останавливаемого потока!");
-            }
-            _serverThread.HardStop();
-        }
+        if (IsCompleted) return;
+        _currentStep++;
+        Thread.Sleep(10); // Имитация тяжелой работы 1 "кванта" времени (10мс)
     }
+}
 
-    public class SoftStopCommand : ICommand
+public class ShortCommand : ICommand
+{
+    private readonly Action _action;
+    public ShortCommand(Action action) => _action = action;
+    
+    public void Execute()
     {
-        private readonly ServerThread _serverThread;
-
-        public SoftStopCommand(ServerThread serverThread)
-        {
-            _serverThread = serverThread ?? throw new ArgumentNullException(nameof(serverThread));
-        }
-
-        public void Execute()
-        {
-            if (Thread.CurrentThread != _serverThread.Thread)
-            {
-                throw new InvalidOperationException("Команда SoftStop может быть выполнена только внутри останавливаемого потока!");
-            }
-            _serverThread.SoftStop();
-        }
-    }
-
-    public class PrintCommand : ICommand
-    {
-        private readonly string _message;
-
-        public PrintCommand(string message)
-        {
-            _message = message;
-        }
-
-        public void Execute()
-        {
-            Console.WriteLine($"[Выполнение] {_message}");
-        }
+        Thread.Sleep(5); // Быстрая команда
+        _action?.Invoke();
     }
 }

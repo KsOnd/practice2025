@@ -1,7 +1,11 @@
-namespace Task17
+namespace Task17;
+
+public interface ICommand
 {
-    public interface ICommand
-    {
-        void Execute();
-    }
+    void Execute();
+}
+
+public interface IMultistepCommand : ICommand
+{
+    bool IsCompleted { get; }
 }

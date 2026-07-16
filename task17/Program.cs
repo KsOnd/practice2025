@@ -1,34 +1,66 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Threading;
+using ScottPlot;
 
-namespace Task17
+namespace Task17;
+
+class Program
 {
-    class Program
+    static void Main()
     {
-        static void Main(string[] args)
+        Console.WriteLine("Запуск эксперимента для графика...");
+        double[] withoutScheduler = RunBlockingScenario();
+        double[] withScheduler = RunSchedulerScenario();
+
+        var plt = new Plot();
+        var bar1 = plt.Add.Bars(withoutScheduler);
+        bar1.LegendText = "Без планировщика (Блокировка)";
+        
+        var bar2 = plt.Add.Bars(withScheduler);
+        bar2.LegendText = "С планировщиком (Round Robin)";
+        
+        plt.Title("Время ожидания коротких команд (Latency)");
+        plt.YLabel("Время отклика (мс)");
+        plt.ShowLegend();
+        
+        plt.SavePng("latency_graph.png", 600, 400);
+        Console.WriteLine("График сохранен в файл: latency_graph.png");
+    }
+
+    static double[] RunBlockingScenario()
+    {
+        double[] latencies = new double[5];
+        var sw = Stopwatch.StartNew();
+        
+        Thread.Sleep(100);
+        for (int i = 0; i < 5; i++)
         {
-            Console.WriteLine("=== ТЕСТ 1: Демонстрация SoftStop ===");
-            var handler = new ConsoleExceptionHandler();
-            var server1 = new ServerThread(handler);
-            server1.Start();
-
-            server1.AddCommand(new PrintCommand("Команда №1"));
-            server1.AddCommand(new PrintCommand("Команда №2"));
-            server1.AddCommand(new SoftStopCommand(server1));
-            server1.AddCommand(new PrintCommand("Команда №3 (должна выполниться, так как это SoftStop)"));
-
-            server1.Thread.Join();
-            Console.WriteLine("-> Поток сервера 1 успешно остановлен через SoftStop.\n");
-
-            Console.WriteLine("=== ТЕСТ 2: Демонстрация HardStop ===");
-            var server2 = new ServerThread(handler);
-            server2.Start();
-
-            server2.AddCommand(new PrintCommand("Команда №1 во 2-м сервере"));
-            server2.AddCommand(new HardStopCommand(server2));
-            server2.AddCommand(new PrintCommand("Команда №2 во 2-м сервере (НЕ должна выполниться!)"));
-
-            server2.Thread.Join();
-            Console.WriteLine("-> Поток сервера 2 успешно остановлен через HardStop.");
+            Thread.Sleep(5);
+            latencies[i] = sw.ElapsedMilliseconds;
         }
+        return latencies;
+    }
+
+    static double[] RunSchedulerScenario()
+    {
+        double[] latencies = new double[5];
+        var scheduler = new RoundRobinScheduler();
+        var server = new ServerThread(scheduler);
+        server.Start();
+        
+        var sw = Stopwatch.StartNew();
+        
+        server.AddCommand(new LongRunningCommand(10));
+        
+        for (int i = 0; i < 5; i++)
+        {
+            int index = i;
+            server.AddCommand(new ShortCommand(() => latencies[index] = sw.ElapsedMilliseconds));
+        }
+
+        Thread.Sleep(200);
+        server.Stop();
+        return latencies;
     }
 }
